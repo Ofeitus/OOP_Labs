@@ -1,5 +1,5 @@
-# OOPaint 1
+# OOPaint 1 Лаба
 
-Java 15
+Java 15.0.2
 
 Сборка и запуск через IDE IntellijIDEA
