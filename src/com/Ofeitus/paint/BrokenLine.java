@@ -1,15 +1,18 @@
+package com.Ofeitus.paint;
+
 import java.awt.*;
 import java.awt.Color;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
-public class PBrokenLine extends PShape {
+public class BrokenLine extends Shape {
     Color color;
+    int x, y;
     ArrayList<Point> points = new ArrayList<>();
     float stroke;
 
-    public PBrokenLine() {
-        super();
+    public BrokenLine(int x, int y, int x1, int y1) {
+        super(x, y, x1, y1);
         color = Color.black;
         stroke = 2.0f;
     }
