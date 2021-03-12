@@ -92,12 +92,12 @@ public class Paint {
         shapesBar.setLayout( new BoxLayout(shapesBar, BoxLayout.LINE_AXIS));
         ButtonGroup shapesButtons = new ButtonGroup();
         ArrayList<ImageIcon> icons = new ArrayList<>();
-        icons.add( new ImageIcon("resources\\ToolLine_s0.png"));
-        icons.add( new ImageIcon("resources\\ToolRect_s0.png"));
-        icons.add( new ImageIcon("resources\\ToolEllipse_s0.png"));
-        icons.add( new ImageIcon("resources\\ToolPolygon_s0.png"));
-        icons.add( new ImageIcon("resources\\ToolLassoPoly_s0.png"));
-        icons.add( new ImageIcon("resources\\ToolCustomShape_s0.png"));
+        icons.add( new ImageIcon("resources/ToolLine_s0.png"));
+        icons.add( new ImageIcon("resources/ToolRect_s0.png"));
+        icons.add( new ImageIcon("resources/ToolEllipse_s0.png"));
+        icons.add( new ImageIcon("resources/ToolPolygon_s0.png"));
+        icons.add( new ImageIcon("resources/ToolLassoPoly_s0.png"));
+        icons.add( new ImageIcon("resources/ToolCustomShape_s0.png"));
 
         for (int i = 0; i < 6 ; i++) {
             JToggleButton shapeButton = new JToggleButton(icons.get(i));
