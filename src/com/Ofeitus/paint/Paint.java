@@ -1,5 +1,9 @@
 package com.Ofeitus.paint;
 
+import com.Ofeitus.paint.shapeFactories.*;
+import com.Ofeitus.paint.shapes.PolyLine;
+import com.Ofeitus.paint.shapes.Polygon;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -71,9 +75,19 @@ public class Paint {
             }
         }
 
+        //
         DrawShapes drawShapes = new DrawShapes();
 
-        // Shapes bar
+        // Список фабрик фигур
+        ArrayList<ShapeFactory> shapeFactories = new ArrayList<>();
+        shapeFactories.add(new LineFactory());
+        shapeFactories.add(new RectangleFactory());
+        shapeFactories.add(new EllipseFactory());
+        shapeFactories.add(new RegularPolygonFactory());
+        shapeFactories.add(new PolyLineFactory());
+        shapeFactories.add(new PolygonFactory());
+
+        // Панель фигур
         JPanel shapesBar = new JPanel();
         shapesBar.setLayout( new BoxLayout(shapesBar, BoxLayout.LINE_AXIS));
         ButtonGroup shapesButtons = new ButtonGroup();
@@ -109,24 +123,27 @@ public class Paint {
         }
         shapesBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Options bar
+        // Панель свойств
         JPanel optionsBar = new JPanel();
         optionsBar.setLayout( new BoxLayout(optionsBar, BoxLayout.LINE_AXIS));
-            // Fill color
+
+            // Цвет заливки
         optionsBar.add( new JLabel("  Заливка: "));
         fillColorBtn = new JButton("    ");
         fillColorBtn.setBackground(fillColor);
         fillColorBtn.setActionCommand("chooseFillColor");
         fillColorBtn.addActionListener( new ButtonClickListener());
         optionsBar.add(fillColorBtn);
-            // Stroke color
+
+            // Цвет обводки
         optionsBar.add( new JLabel("  Обводка: "));
         strokeColorBtn = new JButton("    ");
         strokeColorBtn.setBackground(strokeColor);
         strokeColorBtn.setActionCommand("chooseStrokeColor");
         strokeColorBtn.addActionListener( new ButtonClickListener());
         optionsBar.add(strokeColorBtn);
-            // Width spinner
+
+            // Толщина обводки
         SpinnerNumberModel model = new SpinnerNumberModel(4.0, 0.0, 100.0, 0.1);
         JSpinner strokeWidthSp = new JSpinner(model);
         strokeWidthSp.setMaximumSize( new Dimension(70, 70));
@@ -138,7 +155,8 @@ public class Paint {
         });
         strokeWidth = ((Double) strokeWidthSp.getValue()).floatValue();
         optionsBar.add(strokeWidthSp);
-            // Edges count spinner
+
+            // Кол-во сторон правильного многоугольника
         edgesLabel = new JLabel("  Стороны: ");
         edgesLabel.setVisible(false);
         optionsBar.add(edgesLabel);
@@ -157,19 +175,19 @@ public class Paint {
 
         optionsBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Toolbar
+        // Панель инструментов (фигуры и свойства)
         JPanel toolbar = new JPanel();
         toolbar.setLayout( new BoxLayout(toolbar, BoxLayout.PAGE_AXIS));
         toolbar.add(shapesBar);
         toolbar.add(optionsBar);
 
-        // Status bar
+        // Панель состояния
         JPanel statusbar = new JPanel();
         statusbar.setLayout( new BoxLayout(statusbar, BoxLayout.LINE_AXIS));
         JLabel mouseCoordsLbl = new JLabel("  x:   y:");
         statusbar.add(mouseCoordsLbl);
 
-        // Drawing area
+        // Область рисования
         JPanel drawField = new JPanel();
         drawField.setLayout( new BoxLayout(drawField, BoxLayout.PAGE_AXIS));
         drawField.setBackground(Color.WHITE);
@@ -181,47 +199,38 @@ public class Paint {
                 super.mousePressed(e);
                 int x = e.getPoint().x;
                 int y = e.getPoint().y;
-                Shape preview = null;
 
-                // Handle simple shapes
-                if (currShape == 0) preview = new Line(x, y, x, y);
-                else if (currShape == 1) preview = new Rectangle(x, y, x, y);
-                else if (currShape == 2) preview = new Ellipse(x, y, x, y);
-                else if (currShape == 3) preview = new Polygon(x, y, x, y, edgesCount);
+                // Число сторон правильного многоугольника
+                int option = 0;
+                if (shapeFactories.get(currShape) instanceof RegularPolygonFactory)
+                    option = edgesCount;
 
-                // Handle polyline
-                else if (currShape == 4 || currShape == 5) {
-                    if (DrawShapes.shapes.size() > 0) {
-                        Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
-                        if (shape instanceof PolyLine) {
-                            if (!((PolyLine) shape).finished) {
-                                if (e.getButton() == MouseEvent.BUTTON3) {
-                                    ((PolyLine) shape).points.remove(((PolyLine) shape).points.size() - 1);
-                                    ((PolyLine) shape).finished = true;
-                                } else
-                                    ((PolyLine) shape).addPoint(x, y);
-                                frame.repaint();
-                                return;
-                            }
+                // Создание фигуры через фабрику
+                Shape preview = shapeFactories.get(currShape).factoryMethod(x, y, x, y, option);
+
+                // Если есть активная ломаная или полигон
+                if (DrawShapes.shapes.size() > 0) {
+                    Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
+                    if (shape instanceof PolyLine || shape instanceof Polygon) {
+                        if (!shape.finished) {
+                            if (e.getButton() == MouseEvent.BUTTON3) {
+                                // Закончить рисование ломанной или полигона (правая кнопка мыши)
+                                shape.points.remove(shape.points.size() - 1);
+                                shape.finished = true;
+                            } else
+                                // Добавить точку
+                                shape.addPoint(x, y);
+                            frame.repaint();
+                            return;
                         }
                     }
-                    int mode;
-                    if (currShape == 4)
-                        mode = 0;
-                    else
-                        mode = 1;
-                    preview = new PolyLine(0, 0, 0, 0, mode);
-                    ((PolyLine) preview).addPoint(x, y);
-                    ((PolyLine) preview).addPoint(x, y);
                 }
 
-                if (preview != null) {
-                    preview.fillColor = fillColor;
-                    preview.strokeColor = strokeColor;
-                    preview.stroke = strokeWidth;
-                    DrawShapes.shapes.add(preview);
-                    frame.repaint();
-                }
+                preview.fillColor = fillColor;
+                preview.strokeColor = strokeColor;
+                preview.stroke = strokeWidth;
+                DrawShapes.shapes.add(preview);
+                frame.repaint();
             }
         });
 
@@ -231,12 +240,14 @@ public class Paint {
                 super.mouseDragged(e);
                 int x = e.getPoint().x;
                 int y = e.getPoint().y;
+
+                // Предпросмотр рисования ломанной линии
                 if (DrawShapes.shapes.size() > 0) {
                     Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
-                    if (shape instanceof PolyLine) {
-                        if (!((PolyLine) shape).finished) {
-                            ((PolyLine) shape).points.get(((PolyLine) shape).points.size() - 1).x = x;
-                            ((PolyLine) shape).points.get(((PolyLine) shape).points.size() - 1).y = y;
+                    if (shape instanceof PolyLine || shape instanceof Polygon) {
+                        if (!shape.finished) {
+                            shape.points.get(shape.points.size() - 1).x = x;
+                            shape.points.get(shape.points.size() - 1).y = y;
                             frame.repaint();
                         }
                     }
@@ -248,9 +259,11 @@ public class Paint {
                 super.mouseDragged(e);
                 int x = e.getPoint().x;
                 int y = e.getPoint().y;
+
+                // Предпросморт рисования фигур
                 if (DrawShapes.shapes.size() > 0) {
                     Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
-                    if (!(shape instanceof PolyLine)) {
+                    if (!(shape instanceof PolyLine || shape instanceof Polygon)) {
                         shape.x1 = x;
                         shape.y1 = y;
                     }
@@ -260,6 +273,7 @@ public class Paint {
             }
         });
 
+        // Главная панель
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
         mainPanel.add(toolbar, BorderLayout.NORTH);

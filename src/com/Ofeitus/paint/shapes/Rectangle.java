@@ -1,4 +1,6 @@
-package com.Ofeitus.paint;
+package com.Ofeitus.paint.shapes;
+
+import com.Ofeitus.paint.Shape;
 
 import java.awt.*;
 

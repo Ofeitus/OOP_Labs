@@ -1,13 +1,15 @@
-package com.Ofeitus.paint;
+package com.Ofeitus.paint.shapes;
+
+import com.Ofeitus.paint.Shape;
 
 import java.awt.*;
 
-public class Polygon extends Shape {
+public class RegularPolygon extends Shape {
     int n, r;
     double a, b, z;
     double angle;
 
-    public Polygon(int x, int y, int x1, int y1, int n) {
+    public RegularPolygon(int x, int y, int x1, int y1, int n) {
         super(x, y, x1, y1);
         this.n = n;
         angle = 360.0 / n;
