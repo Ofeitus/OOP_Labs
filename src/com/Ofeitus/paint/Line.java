@@ -1,7 +1,6 @@
 package com.Ofeitus.paint;
 
 import java.awt.*;
-import java.awt.geom.Line2D;
 
 public class Line extends Shape {
 

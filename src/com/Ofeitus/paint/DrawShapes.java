@@ -8,7 +8,7 @@ public class DrawShapes extends JComponent {
     public static ArrayList<Shape> shapes = new ArrayList<>();
 
     @Override
-    public void paint(Graphics g) {
+    public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
 
         for (Shape shape : shapes) {

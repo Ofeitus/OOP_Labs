@@ -1,7 +1,6 @@
 package com.Ofeitus.paint;
 
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.min;

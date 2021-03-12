@@ -13,13 +13,16 @@ import java.util.ArrayList;
 public class Paint {
 
     static JFrame frame = new JFrame("OOPaint!");
-    static Color fillColor = Color.BLACK;
+    static Color fillColor = Color.GRAY;
     static Color strokeColor = Color.BLACK;
     static float strokeWidth;
+    static int edgesCount;
     static int currShape = 0;
 
     static JButton fillColorBtn;
     static JButton strokeColorBtn;
+    static JLabel edgesLabel;
+    static JSpinner edgesCountSp;
 
     private static void configureComponents(final Container c) {
         Component[] comps = c.getComponents();
@@ -79,8 +82,10 @@ public class Paint {
         icons.add( new ImageIcon("resources\\ToolRect_s0.png"));
         icons.add( new ImageIcon("resources\\ToolEllipse_s0.png"));
         icons.add( new ImageIcon("resources\\ToolPolygon_s0.png"));
+        icons.add( new ImageIcon("resources\\ToolLassoPoly_s0.png"));
+        icons.add( new ImageIcon("resources\\ToolCustomShape_s0.png"));
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 6 ; i++) {
             JToggleButton shapeButton = new JToggleButton(icons.get(i));
             if (i == 0)
                 shapeButton.setSelected(true);
@@ -90,7 +95,14 @@ public class Paint {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     currShape = finalI;
-                    System.out.println(currShape);
+                    if (currShape == 3) {
+                        edgesLabel.setVisible(true);
+                        edgesCountSp.setVisible(true);
+                    }
+                    else {
+                        edgesLabel.setVisible(false);
+                        edgesCountSp.setVisible(false);
+                    }
                 }
             });
             shapesBar.add(shapeButton);
@@ -121,11 +133,27 @@ public class Paint {
         strokeWidthSp.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                strokeWidth = ((Double)strokeWidthSp.getValue()).floatValue();
+                strokeWidth = ((Double) strokeWidthSp.getValue()).floatValue();
             }
         });
-        strokeWidth = ((Double)strokeWidthSp.getValue()).floatValue();
+        strokeWidth = ((Double) strokeWidthSp.getValue()).floatValue();
         optionsBar.add(strokeWidthSp);
+            // Edges count spinner
+        edgesLabel = new JLabel("  Стороны: ");
+        edgesLabel.setVisible(false);
+        optionsBar.add(edgesLabel);
+        model = new SpinnerNumberModel(5, 3, 100.0, 1);
+        edgesCountSp = new JSpinner(model);
+        edgesCountSp.setMaximumSize( new Dimension(70, 70));
+        edgesCountSp.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                edgesCount = ((Double) edgesCountSp.getValue()).intValue();
+            }
+        });
+        edgesCount = ((Double) edgesCountSp.getValue()).intValue();
+        optionsBar.add(edgesCountSp);
+        edgesCountSp.setVisible(false);
 
         optionsBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -147,46 +175,87 @@ public class Paint {
         drawField.setBackground(Color.WHITE);
         drawField.add(drawShapes);
         drawField.addMouseListener(new MouseAdapter() {
+
             @Override
             public void mousePressed(MouseEvent e) {
                 super.mousePressed(e);
                 int x = e.getPoint().x;
                 int y = e.getPoint().y;
-                Shape preview;
-                switch (currShape) {
-                    case 0 -> preview = new Line(x, y, x, y);
-                    case 1 -> preview = new Rectangle(x, y, x, y);
-                    case 2 -> preview = new Ellipse(x, y, x, y);
-                    case 3 -> preview = new Polygon(x, y, x, y, 5);
-                    default -> throw new IllegalStateException("Unexpected value: " + currShape);
+                Shape preview = null;
+
+                // Handle simple shapes
+                if (currShape == 0) preview = new Line(x, y, x, y);
+                else if (currShape == 1) preview = new Rectangle(x, y, x, y);
+                else if (currShape == 2) preview = new Ellipse(x, y, x, y);
+                else if (currShape == 3) preview = new Polygon(x, y, x, y, edgesCount);
+
+                // Handle polyline
+                else if (currShape == 4 || currShape == 5) {
+                    if (DrawShapes.shapes.size() > 0) {
+                        Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
+                        if (shape instanceof PolyLine) {
+                            if (!((PolyLine) shape).finished) {
+                                if (e.getButton() == MouseEvent.BUTTON3) {
+                                    ((PolyLine) shape).points.remove(((PolyLine) shape).points.size() - 1);
+                                    ((PolyLine) shape).finished = true;
+                                } else
+                                    ((PolyLine) shape).addPoint(x, y);
+                                frame.repaint();
+                                return;
+                            }
+                        }
+                    }
+                    int mode;
+                    if (currShape == 4)
+                        mode = 0;
+                    else
+                        mode = 1;
+                    preview = new PolyLine(0, 0, 0, 0, mode);
+                    ((PolyLine) preview).addPoint(x, y);
+                    ((PolyLine) preview).addPoint(x, y);
                 }
 
-                preview.fillColor = fillColor;
-                preview.strokeColor = strokeColor;
-                preview.stroke = strokeWidth;
-                DrawShapes.shapes.add(preview);
-                frame.repaint();
+                if (preview != null) {
+                    preview.fillColor = fillColor;
+                    preview.strokeColor = strokeColor;
+                    preview.stroke = strokeWidth;
+                    DrawShapes.shapes.add(preview);
+                    frame.repaint();
+                }
             }
         });
 
         drawField.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
-                super.mouseMoved(e);
-                mouseCoordsLbl.setText(
-                        "  x: " + e.getPoint().x +
-                                "  y: " + e.getPoint().y
-                );
+                super.mouseDragged(e);
+                int x = e.getPoint().x;
+                int y = e.getPoint().y;
+                if (DrawShapes.shapes.size() > 0) {
+                    Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
+                    if (shape instanceof PolyLine) {
+                        if (!((PolyLine) shape).finished) {
+                            ((PolyLine) shape).points.get(((PolyLine) shape).points.size() - 1).x = x;
+                            ((PolyLine) shape).points.get(((PolyLine) shape).points.size() - 1).y = y;
+                            frame.repaint();
+                        }
+                    }
+                }
+                mouseCoordsLbl.setText("  x: " + x + "  y: " + y);
             }
             @Override
             public void mouseDragged(MouseEvent e) {
                 super.mouseDragged(e);
-                DrawShapes.shapes.get(DrawShapes.shapes.size() - 1).x1 = e.getPoint().x;
-                DrawShapes.shapes.get(DrawShapes.shapes.size() - 1).y1 = e.getPoint().y;
-                mouseCoordsLbl.setText(
-                        "  x: " + e.getPoint().x +
-                                "  y: " + e.getPoint().y
-                );
+                int x = e.getPoint().x;
+                int y = e.getPoint().y;
+                if (DrawShapes.shapes.size() > 0) {
+                    Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
+                    if (!(shape instanceof PolyLine)) {
+                        shape.x1 = x;
+                        shape.y1 = y;
+                    }
+                }
+                mouseCoordsLbl.setText("  x: " + x + "  y: " + y);
                 frame.repaint();
             }
         });
