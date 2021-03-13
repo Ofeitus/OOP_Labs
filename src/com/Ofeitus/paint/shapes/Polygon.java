@@ -1,17 +1,12 @@
 package com.Ofeitus.paint.shapes;
 
-import com.Ofeitus.paint.Shape;
-
 import java.awt.*;
 import java.util.ArrayList;
 
-public class Polygon extends Shape {
+public class Polygon extends DynamicShape {
 
-    public Polygon(int x, int y, int x1, int y1) {
-        super(x, y, x1, y1);
+    public Polygon() {
         points = new ArrayList<>();
-        addPoint(x, y);
-        addPoint(x, y);
     }
 
     public void addPoint(int x, int y) {
@@ -19,18 +14,15 @@ public class Polygon extends Shape {
     }
 
     public void draw(Graphics2D g2) {
-        int[] xPoints = new int[points.size()];
-        int[] yPoints = new int[points.size()];
-        int i = 0;
+        java.awt.Polygon polygon = new java.awt.Polygon();
         for (Point point: points) {
-            xPoints[i] = point.x;
-            yPoints[i] = point.y;
-            i++;
+            polygon.addPoint(point.x, point.y);
         }
-        g2.setStroke(new BasicStroke(stroke));
+
+        g2.setStroke(stroke);
         g2.setColor(fillColor);
-        g2.fillPolygon(xPoints, yPoints, points.size());
+        g2.fillPolygon(polygon);
         g2.setColor(strokeColor);
-        g2.drawPolygon(xPoints, yPoints, points.size());
+        g2.drawPolygon(polygon);
     }
 }

@@ -1,7 +1,6 @@
 package com.Ofeitus.paint.shapeFactories;
 
-import com.Ofeitus.paint.Shape;
-import com.Ofeitus.paint.ShapeFactory;
+import com.Ofeitus.paint.shapes.Shape;
 import com.Ofeitus.paint.shapes.Rectangle;
 
 public class RectangleFactory extends ShapeFactory {

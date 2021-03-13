@@ -1,12 +1,10 @@
 package com.Ofeitus.paint;
 
 import com.Ofeitus.paint.shapeFactories.*;
-import com.Ofeitus.paint.shapes.PolyLine;
-import com.Ofeitus.paint.shapes.Polygon;
+import com.Ofeitus.paint.shapes.*;
+import com.Ofeitus.paint.shapes.Shape;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -75,7 +73,6 @@ public class Paint {
             }
         }
 
-        //
         DrawShapes drawShapes = new DrawShapes();
 
         // Список фабрик фигур
@@ -105,18 +102,15 @@ public class Paint {
                 shapeButton.setSelected(true);
             shapesButtons.add(shapeButton);
             int finalI = i;
-            shapeButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    currShape = finalI;
-                    if (currShape == 3) {
-                        edgesLabel.setVisible(true);
-                        edgesCountSp.setVisible(true);
-                    }
-                    else {
-                        edgesLabel.setVisible(false);
-                        edgesCountSp.setVisible(false);
-                    }
+            shapeButton.addActionListener(e -> {
+                currShape = finalI;
+                if (currShape == 3) {
+                    edgesLabel.setVisible(true);
+                    edgesCountSp.setVisible(true);
+                }
+                else {
+                    edgesLabel.setVisible(false);
+                    edgesCountSp.setVisible(false);
                 }
             });
             shapesBar.add(shapeButton);
@@ -147,12 +141,7 @@ public class Paint {
         SpinnerNumberModel model = new SpinnerNumberModel(4.0, 0.0, 100.0, 0.1);
         JSpinner strokeWidthSp = new JSpinner(model);
         strokeWidthSp.setMaximumSize( new Dimension(70, 70));
-        strokeWidthSp.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                strokeWidth = ((Double) strokeWidthSp.getValue()).floatValue();
-            }
-        });
+        strokeWidthSp.addChangeListener(e -> strokeWidth = ((Double) strokeWidthSp.getValue()).floatValue());
         strokeWidth = ((Double) strokeWidthSp.getValue()).floatValue();
         optionsBar.add(strokeWidthSp);
 
@@ -163,12 +152,7 @@ public class Paint {
         model = new SpinnerNumberModel(5, 3, 100.0, 1);
         edgesCountSp = new JSpinner(model);
         edgesCountSp.setMaximumSize( new Dimension(70, 70));
-        edgesCountSp.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                edgesCount = ((Double) edgesCountSp.getValue()).intValue();
-            }
-        });
+        edgesCountSp.addChangeListener(e -> edgesCount = ((Double) edgesCountSp.getValue()).intValue());
         edgesCount = ((Double) edgesCountSp.getValue()).intValue();
         optionsBar.add(edgesCountSp);
         edgesCountSp.setVisible(false);
@@ -200,23 +184,15 @@ public class Paint {
                 int x = e.getPoint().x;
                 int y = e.getPoint().y;
 
-                // Число сторон правильного многоугольника
-                int option = 0;
-                if (shapeFactories.get(currShape) instanceof RegularPolygonFactory)
-                    option = edgesCount;
-
-                // Создание фигуры через фабрику
-                Shape preview = shapeFactories.get(currShape).factoryMethod(x, y, x, y, option);
-
-                // Если есть активная ломаная или полигон
-                if (DrawShapes.shapes.size() > 0) {
-                    Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
-                    if (shape instanceof PolyLine || shape instanceof Polygon) {
-                        if (!shape.finished) {
+                // Если есть активная динамическая фигура
+                if (drawShapes.shapesCount() > 0) {
+                    if (drawShapes.lastShape() instanceof DynamicShape) {
+                        DynamicShape shape = (DynamicShape) drawShapes.lastShape();
+                        if (shape.isActive()) {
                             if (e.getButton() == MouseEvent.BUTTON3) {
                                 // Закончить рисование ломанной или полигона (правая кнопка мыши)
-                                shape.points.remove(shape.points.size() - 1);
-                                shape.finished = true;
+                                shape.removePoint(shape.pointsCount() - 1);
+                                shape.setActive(false);
                             } else
                                 // Добавить точку
                                 shape.addPoint(x, y);
@@ -226,10 +202,23 @@ public class Paint {
                     }
                 }
 
-                preview.fillColor = fillColor;
-                preview.strokeColor = strokeColor;
-                preview.stroke = strokeWidth;
-                DrawShapes.shapes.add(preview);
+                // Число сторон правильного многоугольника
+                int option = 0;
+                if (shapeFactories.get(currShape) instanceof RegularPolygonFactory)
+                    option = edgesCount;
+
+                // Создание фигуры через фабрику
+                Shape shape = shapeFactories.get(currShape).factoryMethod(x, y, x, y, option);
+
+                if (shape instanceof DynamicShape) {
+                    ((DynamicShape) shape).addPoint(x, y);
+                    ((DynamicShape) shape).addPoint(x, y);
+                }
+
+                shape.fillColor = fillColor;
+                shape.strokeColor = strokeColor;
+                shape.stroke = new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+                drawShapes.addShape(shape);
                 frame.repaint();
             }
         });
@@ -241,13 +230,13 @@ public class Paint {
                 int x = e.getPoint().x;
                 int y = e.getPoint().y;
 
-                // Предпросмотр рисования ломанной линии
-                if (DrawShapes.shapes.size() > 0) {
-                    Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
-                    if (shape instanceof PolyLine || shape instanceof Polygon) {
-                        if (!shape.finished) {
-                            shape.points.get(shape.points.size() - 1).x = x;
-                            shape.points.get(shape.points.size() - 1).y = y;
+                // Предпросмотр рисования динамических фигур
+                if (drawShapes.shapesCount() > 0) {
+                    if (drawShapes.lastShape() instanceof DynamicShape) {
+                        DynamicShape shape = (DynamicShape) drawShapes.lastShape();
+                        if (shape.isActive()) {
+                            shape.lastPoint().x = x;
+                            shape.lastPoint().y = y;
                             frame.repaint();
                         }
                     }
@@ -261,9 +250,9 @@ public class Paint {
                 int y = e.getPoint().y;
 
                 // Предпросморт рисования фигур
-                if (DrawShapes.shapes.size() > 0) {
-                    Shape shape = DrawShapes.shapes.get(DrawShapes.shapes.size() - 1);
-                    if (!(shape instanceof PolyLine || shape instanceof Polygon)) {
+                if (drawShapes.shapesCount() > 0) {
+                    if (drawShapes.lastShape() instanceof PrimitiveShape) {
+                        PrimitiveShape shape = (PrimitiveShape) drawShapes.lastShape();
                         shape.x1 = x;
                         shape.y1 = y;
                     }

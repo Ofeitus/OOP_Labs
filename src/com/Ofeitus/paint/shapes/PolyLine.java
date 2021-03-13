@@ -1,17 +1,12 @@
 package com.Ofeitus.paint.shapes;
 
-import com.Ofeitus.paint.Shape;
-
 import java.awt.*;
 import java.util.ArrayList;
 
-public class PolyLine extends Shape {
+public class PolyLine extends DynamicShape {
 
-    public PolyLine(int x, int y, int x1, int y1) {
-        super(x, y, x1, y1);
+    public PolyLine() {
         points = new ArrayList<>();
-        addPoint(x, y);
-        addPoint(x, y);
     }
 
     public void addPoint(int x, int y) {
@@ -27,7 +22,7 @@ public class PolyLine extends Shape {
             yPoints[i] = point.y;
             i++;
         }
-        g2.setStroke(new BasicStroke(stroke));
+        g2.setStroke(stroke);
         g2.setColor(strokeColor);
         g2.drawPolyline(xPoints, yPoints, points.size());
     }
