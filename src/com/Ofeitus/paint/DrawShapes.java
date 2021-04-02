@@ -7,34 +7,54 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class DrawShapes extends JComponent {
-    private ArrayList<Shape> shapes;
+    private ArrayList<Shape> shapesList;
+    private ArrayList<Shape> undoList;
 
     @Override
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
 
-        for (Shape shape : shapes) {
+        for (Shape shape : shapesList) {
             shape.draw(g2);
         }
     }
 
     public DrawShapes() {
-        shapes = new ArrayList<>();
+        shapesList = new ArrayList<>();
+        undoList = new ArrayList<>();
     }
 
     public int shapesCount() {
-        return shapes.size();
+        return shapesList.size();
     }
 
     public Shape getShape(int index) {
-        return shapes.get(index);
+        return shapesList.get(index);
     }
 
-    public Object lastShape() {
-        return shapes.get(shapes.size() - 1);
+    public Shape lastShape() {
+        return shapesList.get(shapesList.size() - 1);
     }
 
     public void addShape(Shape shape) {
-        shapes.add(shape);
+        shapesList.add(shape);
+    }
+
+    public void undo() {
+        if (shapesList.size() > 0) {
+            undoList.add(shapesList.get(shapesList.size() - 1));
+            shapesList.remove(shapesList.size() - 1);
+        }
+    }
+
+    public void redo() {
+        if (undoList.size() > 0) {
+            shapesList.add(undoList.get(undoList.size() - 1));
+            undoList.remove(undoList.size() - 1);
+        }
+    }
+
+    public void clearUndo() {
+        undoList.clear();
     }
 }

@@ -75,6 +75,25 @@ public class Paint {
 
         DrawShapes drawShapes = new DrawShapes();
 
+        InputMap input = drawShapes.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        input.put(KeyStroke.getKeyStroke("ctrl pressed Z"), "undo");
+        drawShapes.getActionMap().put("undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawShapes.undo();
+                frame.repaint();
+            }
+        });
+
+        input.put(KeyStroke.getKeyStroke("ctrl shift pressed Z"), "redo");
+        drawShapes.getActionMap().put("redo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawShapes.redo();
+                frame.repaint();
+            }
+        });
+
         // Список фабрик фигур
         ArrayList<ShapeFactory> shapeFactories = new ArrayList<>();
         shapeFactories.add(new LineFactory());
@@ -201,6 +220,8 @@ public class Paint {
                         }
                     }
                 }
+
+                drawShapes.clearUndo();
 
                 // Число сторон правильного многоугольника
                 int option = 0;
