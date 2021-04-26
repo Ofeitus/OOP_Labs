@@ -9,7 +9,7 @@ public class Line extends PrimitiveShape {
     }
 
     public void draw(Graphics2D g2) {
-        g2.setStroke(stroke);
+        g2.setStroke(new BasicStroke(strokeWidth));
         g2.setColor(strokeColor);
         g2.drawLine(x, y, x1, y1);
     }

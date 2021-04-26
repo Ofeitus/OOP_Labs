@@ -4,6 +4,10 @@ import com.Ofeitus.paint.shapes.Shape;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 public class DrawShapes extends JComponent {
@@ -55,6 +59,25 @@ public class DrawShapes extends JComponent {
     }
 
     public void clearUndo() {
+        undoList.clear();
+    }
+
+    public void saveContent() {
+        try (FileOutputStream outFile = new FileOutputStream("file.pnt");
+             ObjectOutputStream object = new ObjectOutputStream(outFile)){
+            object.writeObject(shapesList);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void loadContent() {
+        try (FileInputStream inFile = new FileInputStream("file.pnt");
+             ObjectInputStream objectIn = new ObjectInputStream(inFile)){
+            shapesList = (ArrayList<Shape>) objectIn.readObject();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         undoList.clear();
     }
 }

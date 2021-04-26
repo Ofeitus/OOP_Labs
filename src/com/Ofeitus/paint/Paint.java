@@ -1,7 +1,8 @@
 package com.Ofeitus.paint;
 
 import com.Ofeitus.paint.shapeFactories.*;
-import com.Ofeitus.paint.shapes.*;
+import com.Ofeitus.paint.shapes.DynamicShape;
+import com.Ofeitus.paint.shapes.PrimitiveShape;
 import com.Ofeitus.paint.shapes.Shape;
 
 import javax.swing.*;
@@ -38,7 +39,7 @@ public class Paint {
         }
     }
 
-    private static class ButtonClickListener implements ActionListener{
+    private static class ButtonClickListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
 
@@ -90,6 +91,23 @@ public class Paint {
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawShapes.redo();
+                frame.repaint();
+            }
+        });
+
+        input.put(KeyStroke.getKeyStroke("ctrl pressed S"), "save");
+        drawShapes.getActionMap().put("save", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawShapes.saveContent();
+            }
+        });
+
+        input.put(KeyStroke.getKeyStroke("ctrl pressed L"), "load");
+        drawShapes.getActionMap().put("load", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawShapes.loadContent();
                 frame.repaint();
             }
         });
@@ -238,7 +256,7 @@ public class Paint {
 
                 shape.fillColor = fillColor;
                 shape.strokeColor = strokeColor;
-                shape.stroke = new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+                shape.strokeWidth = strokeWidth;
                 drawShapes.addShape(shape);
                 frame.repaint();
             }

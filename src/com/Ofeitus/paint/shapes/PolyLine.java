@@ -22,7 +22,7 @@ public class PolyLine extends DynamicShape {
             yPoints[i] = point.y;
             i++;
         }
-        g2.setStroke(stroke);
+        g2.setStroke(new BasicStroke(strokeWidth));
         g2.setColor(strokeColor);
         g2.drawPolyline(xPoints, yPoints, points.size());
     }
