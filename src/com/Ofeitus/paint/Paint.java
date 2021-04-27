@@ -7,13 +7,12 @@ import com.Ofeitus.paint.shapes.Shape;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 public class Paint {
+
+    static DrawShapes drawShapes;
 
     static JFrame frame = new JFrame("OOPaint!");
     static Color fillColor = Color.GRAY;
@@ -39,20 +38,38 @@ public class Paint {
         }
     }
 
-    private static class ButtonClickListener implements ActionListener {
+    private static class MyActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
 
-            if(command.equals("chooseFillColor")) {
-                Color color = JColorChooser.showDialog(null, "Выберите цвет заливки", fillColor);
-                if (color != null)
-                    fillColor = color;
-                fillColorBtn.setBackground(fillColor);
-            } else if(command.equals("chooseStrokeColor")) {
-                Color color = JColorChooser.showDialog(null, "Выберите цвет обводки", strokeColor);
-                if (color != null)
-                    strokeColor = color;
-                strokeColorBtn.setBackground(strokeColor);
+            switch (command) {
+                case "chooseFillColor" -> {
+                    Color color = JColorChooser.showDialog(null, "Choose fill color", fillColor);
+                    if (color != null)
+                        fillColor = color;
+                    fillColorBtn.setBackground(fillColor);
+                }
+                case "chooseStrokeColor" -> {
+                    Color color = JColorChooser.showDialog(null, "Choose stroke color", strokeColor);
+                    if (color != null)
+                        strokeColor = color;
+                    strokeColorBtn.setBackground(strokeColor);
+                }
+                case "newFile" -> System.out.println();
+                case "openFile" -> {
+                    drawShapes.loadContent();
+                    frame.repaint();
+                }
+                case "saveFile" -> drawShapes.saveContent();
+                case "exit" -> System.exit(0);
+                case "undo" -> {
+                    drawShapes.undo();
+                    frame.repaint();
+                }
+                case "redo" -> {
+                    drawShapes.redo();
+                    frame.repaint();
+                }
             }
         }
     }
@@ -74,43 +91,9 @@ public class Paint {
             }
         }
 
-        DrawShapes drawShapes = new DrawShapes();
+        MyActionListener actionLister = new MyActionListener();
 
-        InputMap input = drawShapes.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        input.put(KeyStroke.getKeyStroke("ctrl pressed Z"), "undo");
-        drawShapes.getActionMap().put("undo", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                drawShapes.undo();
-                frame.repaint();
-            }
-        });
-
-        input.put(KeyStroke.getKeyStroke("ctrl shift pressed Z"), "redo");
-        drawShapes.getActionMap().put("redo", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                drawShapes.redo();
-                frame.repaint();
-            }
-        });
-
-        input.put(KeyStroke.getKeyStroke("ctrl pressed S"), "save");
-        drawShapes.getActionMap().put("save", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                drawShapes.saveContent();
-            }
-        });
-
-        input.put(KeyStroke.getKeyStroke("ctrl pressed L"), "load");
-        drawShapes.getActionMap().put("load", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                drawShapes.loadContent();
-                frame.repaint();
-            }
-        });
+        drawShapes = new DrawShapes();
 
         // Список фабрик фигур
         ArrayList<ShapeFactory> shapeFactories = new ArrayList<>();
@@ -120,6 +103,54 @@ public class Paint {
         shapeFactories.add(new RegularPolygonFactory());
         shapeFactories.add(new PolyLineFactory());
         shapeFactories.add(new PolygonFactory());
+
+        // Строка меню
+        JMenuBar menubar = new JMenuBar();
+
+        JMenu menu = new JMenu("File");
+
+        JMenuItem itm = new JMenuItem("New");
+        itm.setActionCommand("newFile");
+        itm.addActionListener(actionLister);
+        menu.add(itm);
+
+        itm = new JMenuItem("Open");
+        itm.setActionCommand("openFile");
+        itm.addActionListener(actionLister);
+        menu.add(itm);
+
+        itm = new JMenuItem("Save");
+        itm.setActionCommand("saveFile");
+        itm.setAccelerator(KeyStroke.getKeyStroke("ctrl pressed S"));
+        itm.addActionListener(actionLister);
+        menu.add(itm);
+
+        menu.add(new JSeparator());
+
+        itm = new JMenuItem("Exit");
+        itm.setActionCommand("exit");
+        itm.addActionListener(actionLister);
+        menu.add(itm);
+
+        menubar.add(menu);
+
+        menu = new JMenu("Edit");
+
+        itm = new JMenuItem("Undo");
+        itm.setActionCommand("undo");
+        itm.setAccelerator(KeyStroke.getKeyStroke("ctrl pressed Z"));
+        itm.addActionListener(actionLister);
+        menu.add(itm);
+
+        itm = new JMenuItem("Redo");
+        itm.setActionCommand("redo");
+        itm.setAccelerator(KeyStroke.getKeyStroke("ctrl shift pressed Z"));
+        itm.addActionListener(actionLister);
+        menu.add(itm);
+
+        menubar.add(menu);
+
+        frame.setJMenuBar(menubar);
 
         // Панель фигур
         JPanel shapesBar = new JPanel();
@@ -159,19 +190,19 @@ public class Paint {
         optionsBar.setLayout( new BoxLayout(optionsBar, BoxLayout.LINE_AXIS));
 
             // Цвет заливки
-        optionsBar.add( new JLabel("  Заливка: "));
+        optionsBar.add( new JLabel("  Fill color: "));
         fillColorBtn = new JButton("    ");
         fillColorBtn.setBackground(fillColor);
         fillColorBtn.setActionCommand("chooseFillColor");
-        fillColorBtn.addActionListener( new ButtonClickListener());
+        fillColorBtn.addActionListener(actionLister);
         optionsBar.add(fillColorBtn);
 
             // Цвет обводки
-        optionsBar.add( new JLabel("  Обводка: "));
+        optionsBar.add( new JLabel("  Stroke color: "));
         strokeColorBtn = new JButton("    ");
         strokeColorBtn.setBackground(strokeColor);
         strokeColorBtn.setActionCommand("chooseStrokeColor");
-        strokeColorBtn.addActionListener( new ButtonClickListener());
+        strokeColorBtn.addActionListener(actionLister);
         optionsBar.add(strokeColorBtn);
 
             // Толщина обводки
@@ -183,7 +214,7 @@ public class Paint {
         optionsBar.add(strokeWidthSp);
 
             // Кол-во сторон правильного многоугольника
-        edgesLabel = new JLabel("  Стороны: ");
+        edgesLabel = new JLabel("  Edges: ");
         edgesLabel.setVisible(false);
         optionsBar.add(edgesLabel);
         model = new SpinnerNumberModel(5, 3, 100.0, 1);
