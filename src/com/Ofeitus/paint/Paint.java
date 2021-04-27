@@ -17,6 +17,7 @@ public class Paint {
 
     static DrawShapes drawShapes;
     static JFileChooser fileChooser = new JFileChooser();
+    static String selectedFile = "";
 
     static JFrame frame = new JFrame("OOPaint!");
     static Color fillColor = Color.GRAY;
@@ -59,16 +60,31 @@ public class Paint {
                         strokeColor = color;
                     strokeColorBtn.setBackground(strokeColor);
                 }
-                case "newFile" -> System.out.println();
+                case "newFile" -> {
+                    drawShapes.clearShapes();
+                    frame.repaint();
+                    selectedFile = "";
+                }
                 case "openFile" -> {
                     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-                        drawShapes.loadContent(fileChooser.getSelectedFile().getPath());
+                        selectedFile = fileChooser.getSelectedFile().getPath();
+                        drawShapes.loadContent(selectedFile);
                         frame.repaint();
                     }
                 }
                 case "saveFile" -> {
+                    if (!selectedFile.equals("")) {
+                        drawShapes.saveContent(selectedFile);
+                    }
+                    else if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                        selectedFile = fileChooser.getSelectedFile().getPath();
+                        drawShapes.saveContent(selectedFile);
+                    }
+                }
+                case "saveFileAs" -> {
                     if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
-                        drawShapes.saveContent(fileChooser.getSelectedFile().getPath());
+                        selectedFile = fileChooser.getSelectedFile().getPath();
+                        drawShapes.saveContent(selectedFile);
                     }
                 }
                 case "exit" -> System.exit(0);
@@ -124,7 +140,7 @@ public class Paint {
         itm.addActionListener(actionLister);
         menu.add(itm);
 
-        itm = new JMenuItem("Open");
+        itm = new JMenuItem("Open...");
         itm.setActionCommand("openFile");
         itm.addActionListener(actionLister);
         menu.add(itm);
@@ -132,6 +148,12 @@ public class Paint {
         itm = new JMenuItem("Save");
         itm.setActionCommand("saveFile");
         itm.setAccelerator(KeyStroke.getKeyStroke("ctrl pressed S"));
+        itm.addActionListener(actionLister);
+        menu.add(itm);
+
+        itm = new JMenuItem("Save as");
+        itm.setActionCommand("saveFileAs");
+        itm.setAccelerator(KeyStroke.getKeyStroke("ctrl shift pressed S"));
         itm.addActionListener(actionLister);
         menu.add(itm);
 

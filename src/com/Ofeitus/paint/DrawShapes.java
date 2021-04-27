@@ -62,6 +62,11 @@ public class DrawShapes extends JComponent {
         undoList.clear();
     }
 
+    public void clearShapes() {
+        shapesList.clear();
+        undoList.clear();
+    }
+
     public void saveContent(String filename) {
         try (FileOutputStream outFile = new FileOutputStream(filename);
              ObjectOutputStream object = new ObjectOutputStream(outFile)){
