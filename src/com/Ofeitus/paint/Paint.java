@@ -7,12 +7,16 @@ import com.Ofeitus.paint.shapes.Shape;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 public class Paint {
 
     static DrawShapes drawShapes;
+    static JFileChooser fileChooser = new JFileChooser();
 
     static JFrame frame = new JFrame("OOPaint!");
     static Color fillColor = Color.GRAY;
@@ -57,10 +61,16 @@ public class Paint {
                 }
                 case "newFile" -> System.out.println();
                 case "openFile" -> {
-                    drawShapes.loadContent();
-                    frame.repaint();
+                    if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                        drawShapes.loadContent(fileChooser.getSelectedFile().getPath());
+                        frame.repaint();
+                    }
                 }
-                case "saveFile" -> drawShapes.saveContent();
+                case "saveFile" -> {
+                    if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                        drawShapes.saveContent(fileChooser.getSelectedFile().getPath());
+                    }
+                }
                 case "exit" -> System.exit(0);
                 case "undo" -> {
                     drawShapes.undo();

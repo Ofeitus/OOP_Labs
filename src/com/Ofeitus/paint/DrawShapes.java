@@ -62,8 +62,8 @@ public class DrawShapes extends JComponent {
         undoList.clear();
     }
 
-    public void saveContent() {
-        try (FileOutputStream outFile = new FileOutputStream("file.pnt");
+    public void saveContent(String filename) {
+        try (FileOutputStream outFile = new FileOutputStream(filename);
              ObjectOutputStream object = new ObjectOutputStream(outFile)){
             object.writeObject(shapesList);
         } catch (Exception ex) {
@@ -71,8 +71,8 @@ public class DrawShapes extends JComponent {
         }
     }
 
-    public void loadContent() {
-        try (FileInputStream inFile = new FileInputStream("file.pnt");
+    public void loadContent(String filename) {
+        try (FileInputStream inFile = new FileInputStream(filename);
              ObjectInputStream objectIn = new ObjectInputStream(inFile)){
             shapesList = (ArrayList<Shape>) objectIn.readObject();
         } catch (Exception ex) {
