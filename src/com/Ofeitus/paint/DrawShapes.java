@@ -11,7 +11,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 public class DrawShapes extends JComponent {
-    private ArrayList<Shape> shapesList;
+    public ArrayList<Shape> shapesList;
     private ArrayList<Shape> undoList;
 
     @Override

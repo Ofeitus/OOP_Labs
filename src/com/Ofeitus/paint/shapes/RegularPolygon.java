@@ -16,7 +16,7 @@ public class RegularPolygon extends PrimitiveShape {
 
         java.awt.Polygon polygon = new java.awt.Polygon();
 
-        g2.setStroke(new BasicStroke(strokeWidth));
+        g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.setColor(fillColor);
 
         r = (int) Math.pow(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2), 0.5);

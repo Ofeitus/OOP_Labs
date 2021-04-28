@@ -11,7 +11,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class Paint {
 
@@ -30,6 +37,26 @@ public class Paint {
     static JButton strokeColorBtn;
     static JLabel edgesLabel;
     static JSpinner edgesCountSp;
+
+    public static URL[] getFileUrls(String directoryPath) throws MalformedURLException {
+
+        File dir = new File(directoryPath);
+
+        Collection<URL> files  = new ArrayList<>();
+
+        if(dir.isDirectory()){
+            File[] listFiles = dir.listFiles();
+
+            assert listFiles != null;
+            for(File file : listFiles){
+                if(file.isFile()) {
+                    files.add(file.toURL());
+                }
+            }
+        }
+
+        return files.toArray(new URL[0]);
+    }
 
     private static void configureComponents(final Container c) {
         Component[] comps = c.getComponents();
@@ -100,7 +127,7 @@ public class Paint {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         // Стиль интерфейса
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -129,6 +156,29 @@ public class Paint {
         shapeFactories.add(new RegularPolygonFactory());
         shapeFactories.add(new PolyLineFactory());
         shapeFactories.add(new PolygonFactory());
+
+        // Иконки фигур
+        ArrayList<ImageIcon> icons = new ArrayList<>();
+        icons.add( new ImageIcon("resources/ToolLine_s0.png"));
+        icons.add( new ImageIcon("resources/ToolRect_s0.png"));
+        icons.add( new ImageIcon("resources/ToolEllipse_s0.png"));
+        icons.add( new ImageIcon("resources/ToolPolygon_s0.png"));
+        icons.add( new ImageIcon("resources/ToolLassoPoly_s0.png"));
+        icons.add( new ImageIcon("resources/ToolCustomShape_s0.png"));
+
+        // Модули
+        URL[] classLoaderUrls = getFileUrls("C:/Users/ofeitus/IdeaProjects/OOPaint/plugins/");
+        for (URL url : classLoaderUrls) {
+            URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});
+            // Фабрика фигуры из плагина
+            Class<?> pluginClass = urlClassLoader.loadClass("com.plugin.Factory");
+            pluginClass = pluginClass.getClasses()[0];
+            Constructor<?> constructor = pluginClass.getConstructor();
+            Object beanObj = constructor.newInstance();
+            shapeFactories.add((ShapeFactory) beanObj);
+            // Иконка фигуры
+            icons.add( new ImageIcon(urlClassLoader.getResource("icon.png")));
+        }
 
         // Строка меню
         JMenuBar menubar = new JMenuBar();
@@ -188,15 +238,8 @@ public class Paint {
         JPanel shapesBar = new JPanel();
         shapesBar.setLayout( new BoxLayout(shapesBar, BoxLayout.LINE_AXIS));
         ButtonGroup shapesButtons = new ButtonGroup();
-        ArrayList<ImageIcon> icons = new ArrayList<>();
-        icons.add( new ImageIcon("resources/ToolLine_s0.png"));
-        icons.add( new ImageIcon("resources/ToolRect_s0.png"));
-        icons.add( new ImageIcon("resources/ToolEllipse_s0.png"));
-        icons.add( new ImageIcon("resources/ToolPolygon_s0.png"));
-        icons.add( new ImageIcon("resources/ToolLassoPoly_s0.png"));
-        icons.add( new ImageIcon("resources/ToolCustomShape_s0.png"));
 
-        for (int i = 0; i < 6 ; i++) {
+        for (int i = 0; i < shapeFactories.size() ; i++) {
             JToggleButton shapeButton = new JToggleButton(icons.get(i));
             if (i == 0)
                 shapeButton.setSelected(true);

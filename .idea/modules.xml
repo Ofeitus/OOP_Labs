@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/OOPaint.iml" filepath="$PROJECT_DIR$/OOPaint.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Trapezoid/Trapezoid.iml" filepath="$PROJECT_DIR$/../Trapezoid/Trapezoid.iml" />
     </modules>
   </component>
 </project>

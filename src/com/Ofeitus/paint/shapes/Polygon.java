@@ -19,7 +19,7 @@ public class Polygon extends DynamicShape {
             polygon.addPoint(point.x, point.y);
         }
 
-        g2.setStroke(new BasicStroke(strokeWidth));
+        g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.setColor(fillColor);
         g2.fillPolygon(polygon);
         g2.setColor(strokeColor);

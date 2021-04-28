@@ -12,7 +12,7 @@ public class Ellipse extends PrimitiveShape {
     }
 
     public void draw(Graphics2D g2) {
-        g2.setStroke(new BasicStroke(strokeWidth));
+        g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.setColor(fillColor);
         g2.fillOval(min(x, x1), min(y, y1), abs(x - x1), abs(y - y1));
         g2.setColor(strokeColor);
