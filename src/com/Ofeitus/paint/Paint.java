@@ -209,7 +209,7 @@ public class Paint {
         icons.add( new ImageIcon("resources/ToolCustomShape_s0.png"));
 
         // Модули
-        URL[] classLoaderUrls = getFileUrls("C:/Users/ofeitus/IdeaProjects/OOPaint/plugins/");
+        URL[] classLoaderUrls = getFileUrls("./plugins/");
         for (URL url : classLoaderUrls) {
             URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});
             // Фабрика фигуры из плагина
