@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -19,6 +20,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class Paint {
 
@@ -27,9 +31,9 @@ public class Paint {
     static String selectedFile = "";
 
     static JFrame frame = new JFrame("OOPaint!");
-    static Color fillColor = Color.GRAY;
-    static Color strokeColor = Color.BLACK;
-    static float strokeWidth;
+    static Color fillColor = new Color(255, 102, 102);
+    static Color strokeColor = new Color(255, 51, 51);
+    static float strokeWidth = 8;
     static int edgesCount;
     static int currShape = 0;
 
@@ -56,6 +60,44 @@ public class Paint {
         }
 
         return files.toArray(new URL[0]);
+    }
+
+    public static ArrayList<String> getClassNames(File givenFile) throws IOException {
+        ArrayList<String> classNames = new ArrayList<>();
+        try (JarFile jarFile = new JarFile(givenFile)) {
+            Enumeration<JarEntry> e = jarFile.entries();
+            while (e.hasMoreElements()) {
+                JarEntry jarEntry = e.nextElement();
+                if (jarEntry.getName().endsWith(".class")) {
+                    String className = jarEntry.getName()
+                            .replace("/", ".")
+                            .replace(".class", "");
+                    classNames.add(className);
+                }
+            }
+            return classNames;
+        }
+    }
+
+    public static String getIconName(File givenFile) throws IOException {
+        try (JarFile jarFile = new JarFile(givenFile)) {
+            Enumeration<JarEntry> e = jarFile.entries();
+            while (e.hasMoreElements()) {
+                JarEntry jarEntry = e.nextElement();
+                if (jarEntry.getName().toLowerCase().contains("icon")) {
+                    return jarEntry.getName();
+                }
+            }
+            return "";
+        }
+    }
+
+    public static String getFactoryClassName(ArrayList<String> names) {
+        for (String name : names) {
+            if (name.toLowerCase().contains("factory"))
+                return name;
+        }
+        return "";
     }
 
     private static void configureComponents(final Container c) {
@@ -127,7 +169,7 @@ public class Paint {
         }
     }
 
-    public static void main(String[] args) throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         // Стиль интерфейса
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -171,14 +213,16 @@ public class Paint {
         for (URL url : classLoaderUrls) {
             URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});
             // Фабрика фигуры из плагина
-            Class<?> pluginClass = urlClassLoader.loadClass("com.plugin.Factory");
-            pluginClass = pluginClass.getClasses()[0];
+            ArrayList<String> classNames = getClassNames(new File(url.getFile()));
+            Class<?> pluginClass = urlClassLoader.loadClass(getFactoryClassName(classNames));
             Constructor<?> constructor = pluginClass.getConstructor();
             Object beanObj = constructor.newInstance();
             shapeFactories.add((ShapeFactory) beanObj);
             // Иконка фигуры
-            icons.add( new ImageIcon(urlClassLoader.getResource("icon.png")));
+            icons.add( new ImageIcon(urlClassLoader.getResource(getIconName(new File(url.getFile())))));
         }
+
+        System.out.println(shapeFactories);
 
         // Строка меню
         JMenuBar menubar = new JMenuBar();
@@ -257,6 +301,9 @@ public class Paint {
                 }
             });
             shapesBar.add(shapeButton);
+            if (i == 5) {
+                shapesBar.add(new JLabel("  Plugins: "));
+            }
         }
         shapesBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -281,7 +328,7 @@ public class Paint {
         optionsBar.add(strokeColorBtn);
 
             // Толщина обводки
-        SpinnerNumberModel model = new SpinnerNumberModel(4.0, 0.0, 100.0, 0.1);
+        SpinnerNumberModel model = new SpinnerNumberModel(8.0, 0.0, 100.0, 0.1);
         JSpinner strokeWidthSp = new JSpinner(model);
         strokeWidthSp.setMaximumSize( new Dimension(70, 70));
         strokeWidthSp.addChangeListener(e -> strokeWidth = ((Double) strokeWidthSp.getValue()).floatValue());
