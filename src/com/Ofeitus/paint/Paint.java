@@ -222,8 +222,6 @@ public class Paint {
             icons.add( new ImageIcon(urlClassLoader.getResource(getIconName(new File(url.getFile())))));
         }
 
-        System.out.println(shapeFactories);
-
         // Строка меню
         JMenuBar menubar = new JMenuBar();
 
@@ -366,6 +364,8 @@ public class Paint {
         drawField.setLayout( new BoxLayout(drawField, BoxLayout.PAGE_AXIS));
         drawField.setBackground(Color.WHITE);
         drawField.add(drawShapes);
+
+        // Рисование фигур
         drawField.addMouseListener(new MouseAdapter() {
 
             @Override
@@ -447,6 +447,19 @@ public class Paint {
                         PrimitiveShape shape = (PrimitiveShape) drawShapes.lastShape();
                         shape.x1 = x;
                         shape.y1 = y;
+                        if (e.isShiftDown()) {
+                            if (Math.abs(x - shape.x) > Math.abs(y - shape.y)) {
+                                if (y > shape.y)
+                                    shape.y1 = shape.y + Math.abs(x - shape.x);
+                                else
+                                    shape.y1 = shape.y - Math.abs(x - shape.x);
+                            } else {
+                                if (x > shape.x)
+                                    shape.x1 = shape.x + Math.abs(y - shape.y);
+                                else
+                                    shape.x1 = shape.x - Math.abs(y - shape.y);
+                            }
+                        }
                     }
                 }
                 mouseCoordsLbl.setText("  x: " + x + "  y: " + y);
