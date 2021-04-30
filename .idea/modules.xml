@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../Heart/Heart.iml" filepath="$PROJECT_DIR$/../Heart/Heart.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/Heart/Heart.iml" filepath="$PROJECT_DIR$/modules/Heart/Heart.iml" />
       <module fileurl="file://$PROJECT_DIR$/OOPaint.iml" filepath="$PROJECT_DIR$/OOPaint.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Trapezoid/Trapezoid.iml" filepath="$PROJECT_DIR$/../Trapezoid/Trapezoid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/Trapezoid/Trapezoid.iml" filepath="$PROJECT_DIR$/modules/Trapezoid/Trapezoid.iml" />
     </modules>
   </component>
 </project>
