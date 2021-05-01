@@ -92,14 +92,6 @@ public class Paint {
         }
     }
 
-    public static String getFactoryClassName(ArrayList<String> names) {
-        for (String name : names) {
-            if (name.toLowerCase().contains("factory"))
-                return name;
-        }
-        return "";
-    }
-
     private static void configureComponents(final Container c) {
         Component[] comps = c.getComponents();
         for (Component comp : comps) {
@@ -214,10 +206,15 @@ public class Paint {
             URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{url});
             // Фабрика фигуры из плагина
             ArrayList<String> classNames = getClassNames(new File(url.getFile()));
-            Class<?> pluginClass = urlClassLoader.loadClass(getFactoryClassName(classNames));
-            Constructor<?> constructor = pluginClass.getConstructor();
-            Object beanObj = constructor.newInstance();
-            shapeFactories.add((ShapeFactory) beanObj);
+            Class<?> pluginClass;
+            for (String className : classNames) {
+                pluginClass = urlClassLoader.loadClass(className);
+                if (pluginClass.getSuperclass().equals(ShapeFactory.class)) {
+                    Constructor<?> constructor = pluginClass.getConstructor();
+                    Object beanObj = constructor.newInstance();
+                    shapeFactories.add((ShapeFactory) beanObj);
+                }
+            }
             // Иконка фигуры
             icons.add( new ImageIcon(urlClassLoader.getResource(getIconName(new File(url.getFile())))));
         }
